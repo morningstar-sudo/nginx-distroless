@@ -5,8 +5,9 @@
 ########################################################################
 FROM cgr.dev/chainguard/wolfi-base:latest AS build
 
+# perl: required by OpenSSL's Configure
 RUN apk add --no-cache build-base git autoconf automake libtool \
-    linux-headers cmake pkgconf pkgconf-dev coreutils
+    linux-headers cmake pkgconf pkgconf-dev coreutils perl
 
 # All sources are cloned from GitHub at build time. Default "latest"
 # resolves the newest stable tag via git ls-remote; pin with --build-arg.
@@ -16,6 +17,7 @@ ARG MODSEC_NGINX_TAG=latest
 ARG CRS_TAG=latest
 ARG ZLIB_TAG=latest
 ARG PCRE2_TAG=latest
+ARG OPENSSL_TAG=latest
 ARG LIBXML2_TAG=latest
 ARG YAJL_TAG=latest
 
@@ -45,6 +47,11 @@ RUN TAG="$PCRE2_TAG"; [ "$TAG" = latest ] && TAG=$(resolve https://github.com/PC
     cd pcre2 && ./autogen.sh && \
     ./configure --disable-shared --enable-static --enable-jit && \
     make -j"$(nproc)" && make install
+
+# openssl (source only — nginx builds it statically itself via --with-openssl)
+RUN TAG="$OPENSSL_TAG"; [ "$TAG" = latest ] && TAG=$(resolve https://github.com/openssl/openssl 'openssl-[0-9]*'); \
+    echo "openssl=$TAG" && \
+    git clone --depth 1 --branch "$TAG" https://github.com/openssl/openssl
 
 # libxml2 (static, cmake — autotools is being phased out upstream)
 RUN TAG="$LIBXML2_TAG"; [ "$TAG" = latest ] && TAG=$(resolve https://github.com/GNOME/libxml2 'v[0-9]*'); \
@@ -103,6 +110,8 @@ RUN TAG="$NGINX_TAG"; [ "$TAG" = latest ] && TAG=$(resolve https://github.com/ng
       --error-log-path=/dev/stderr \
       --http-log-path=/dev/stdout \
       --user=nonroot --group=nonroot \
+      --with-http_ssl_module \
+      --with-openssl=/src/openssl \
       --with-http_gzip_static_module \
       --with-http_realip_module \
       --without-http_fastcgi_module \
