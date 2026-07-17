@@ -32,7 +32,7 @@ int main(void) {
         fprintf(stderr, "entrypoint: nginx configuration test failed (%s)\n", conf);
         return 1;
     }
-
+    fprintf(stderr, "nginx with modsecurity distroless by morningstar-sudo\nstart now\n");
     execl(NGINX, "nginx", "-c", conf, "-g", "daemon off;", (char *)NULL);
     perror("exec nginx");
     return 1;
