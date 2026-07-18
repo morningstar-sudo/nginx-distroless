@@ -113,10 +113,14 @@ RUN TAG="$NGINX_TAG"; [ "$TAG" = latest ] && TAG=$(resolve https://github.com/ng
       --with-http_ssl_module \
       --with-openssl=/src/openssl \
       --with-openssl-opt="no-module no-engine no-tests" \
+      --with-http_v2_module \
       --with-http_gzip_static_module \
       --with-http_realip_module \
+      --with-http_stub_status_module \
       --with-mail \
       --with-mail_ssl_module \
+      --with-stream \
+      --with-stream_ssl_module \
       --without-http_fastcgi_module \
       --without-http_uwsgi_module \
       --without-http_scgi_module \

@@ -61,10 +61,15 @@ COPY my-rules.conf /etc/nginx/modsecurity.d/
 
 # optional: mail proxy (SMTP/IMAP/POP3, STARTTLS supported) — top-level mail{} context
 COPY my-mail.conf /etc/nginx/mail.d/
+
+# optional: TCP/UDP proxy — top-level stream{} context
+COPY my-stream.conf /etc/nginx/stream.d/
 ```
 
-TLS is compiled in (`http_ssl_module`, `mail_ssl_module`, static OpenSSL) —
-add `listen 8443 ssl;` + certs in your conf.d/mail.d files when needed.
+TLS is compiled in (`http_ssl_module`, `mail_ssl_module`, `stream_ssl_module`,
+static OpenSSL) — add `listen 8443 ssl;` + certs in your conf.d/mail.d/stream.d
+files when needed. Also built in: HTTP/2 (`http_v2_module`) and
+`stub_status` for metrics.
 
 To disable a CRS rule that false-positives on your site, add to
 `/etc/nginx/modsecurity.d/*.conf`:
