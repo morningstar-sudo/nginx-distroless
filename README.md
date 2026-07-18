@@ -39,8 +39,9 @@ docker run --rm -p 8080:8080 --read-only --tmpfs /tmp \
   -e IS_MS_ON=true nginx-distroless
 ```
 
-Listens on **8080** (non-root cannot bind 80). No TLS — terminate at your
-LB/ingress.
+Listens on **8080** (non-root cannot bind 80; use ports >1024 for ssl/mail
+listeners too). Default config serves plain HTTP — TLS modules are compiled
+in, enable per-project via conf.d/mail.d.
 
 ## Using as a base image
 
@@ -57,7 +58,13 @@ COPY dist/ /usr/share/nginx/html/
 
 # optional: custom ModSecurity rules/exclusions, evaluated after CRS
 COPY my-rules.conf /etc/nginx/modsecurity.d/
+
+# optional: mail proxy (SMTP/IMAP/POP3, STARTTLS supported) — top-level mail{} context
+COPY my-mail.conf /etc/nginx/mail.d/
 ```
+
+TLS is compiled in (`http_ssl_module`, `mail_ssl_module`, static OpenSSL) —
+add `listen 8443 ssl;` + certs in your conf.d/mail.d files when needed.
 
 To disable a CRS rule that false-positives on your site, add to
 `/etc/nginx/modsecurity.d/*.conf`:
