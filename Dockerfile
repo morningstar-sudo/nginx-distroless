@@ -121,6 +121,7 @@ RUN TAG="$NGINX_TAG"; [ "$TAG" = latest ] && TAG=$(resolve https://github.com/ng
       --with-mail_ssl_module \
       --with-stream \
       --with-stream_ssl_module \
+      --with-stream_ssl_preread_module \
       --without-http_fastcgi_module \
       --without-http_uwsgi_module \
       --without-http_scgi_module \
