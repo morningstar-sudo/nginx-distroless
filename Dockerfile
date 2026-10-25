@@ -5,6 +5,8 @@
 ########################################################################
 FROM cgr.dev/chainguard/wolfi-base:latest AS build
 
+ENV PATH="/usr/local/bin:/usr/bin:/bin"
+
 # perl: required by OpenSSL's Configure
 RUN apk add --no-cache build-base git autoconf automake libtool \
     linux-headers cmake pkgconf pkgconf-dev coreutils perl
@@ -30,7 +32,7 @@ git ls-remote --tags --refs "$1" "refs/tags/$2" \
   | grep -Eiv -- '(rc|alpha|beta|dev)[0-9]*$' \
   | sort -V | tail -1
 EOF
-RUN chmod +x /usr/local/bin/resolve
+RUN sed -i 's/\r$//' /usr/local/bin/resolve && chmod +x /usr/local/bin/resolve
 
 WORKDIR /src
 
@@ -153,7 +155,7 @@ RUN mkdir -p /tmp-skel
 ########################################################################
 # Stage 2: distroless runtime (no shell, no package manager, nonroot)
 ########################################################################
-FROM cgr.dev/chainguard/static:latest
+FROM ghcr.io/morningstar-sudo/baseless-static:latest
 
 COPY --from=build /usr/sbin/nginx /usr/sbin/nginx
 COPY --from=build /entrypoint /entrypoint

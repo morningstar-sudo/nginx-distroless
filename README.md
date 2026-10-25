@@ -1,7 +1,7 @@
 # nginx-distroless
 
 Base image: statically compiled nginx + ModSecurity v3 (OWASP CRS) on a
-distroless runtime (`cgr.dev/chainguard/static`). No shell, no package
+distroless runtime (`ghcr.io/morningstar-sudo/baseless-static`). No shell, no package
 manager, non-root (uid 65532), read-only-filesystem friendly.
 
 - All sources (nginx, ModSecurity, ModSecurity-nginx, CRS, zlib, pcre2,
