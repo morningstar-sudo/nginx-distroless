@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
 
 jobs:
   build:
@@ -18,9 +19,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: abxst/actions/strict@v3
+        id: build
         with:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           push: ${{ github.ref == 'refs/heads/main' }}
           build-args: |
             CACHE_BUST=${{ github.run_id }}-${{ github.run_attempt }}
+
+      - uses: sigstore/cosign-installer@v3
+        if: steps.build.outputs.image-digest != ''
+        with:
+          cosign-release: v3.1.4
+
+      - uses: anchore/sbom-action/download-syft@v0
+        if: steps.build.outputs.image-digest != ''
+
+      - name: Sign image and attest SBOM
+        if: steps.build.outputs.image-digest != ''
+        env:
+          IMAGE: ghcr.io/${{ steps.build.outputs.image-name-lc }}
+          DIGEST: ${{ steps.build.outputs.image-digest }}
+        run: |
+          set -euo pipefail
+          platform_digests="$(docker buildx imagetools inspect --raw "${IMAGE}@${DIGEST}" |
+            jq -r '.manifests[]? | select(.platform.os == "linux") | .digest')"
+          for digest in ${platform_digests:-${DIGEST}}; do
+            syft "${IMAGE}@${digest}" -o spdx-json=sbom.spdx.json
+            cosign attest --yes --registry-referrers-mode=legacy \
+              --type spdxjson --predicate sbom.spdx.json "${IMAGE}@${digest}"
+            cosign sign --yes --registry-referrers-mode=legacy "${IMAGE}@${digest}"
+          done
+          if [ -n "${platform_digests}" ]; then
+            cosign sign --yes --registry-referrers-mode=legacy "${IMAGE}@${DIGEST}"
+          fi
