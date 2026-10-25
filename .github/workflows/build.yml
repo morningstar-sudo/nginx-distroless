@@ -22,3 +22,5 @@ jobs:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           push: ${{ github.ref == 'refs/heads/main' }}
+          build-args: |
+            CACHE_BUST=${{ github.run_id }}-${{ github.run_attempt }}

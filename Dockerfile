@@ -6,10 +6,12 @@
 FROM cgr.dev/chainguard/wolfi-base:latest AS build
 
 ENV PATH="/usr/local/bin:/usr/bin:/bin"
+ARG CACHE_BUST=local
 
 # perl: required by OpenSSL's Configure
-RUN apk add --no-cache build-base git autoconf automake libtool \
-    linux-headers cmake pkgconf pkgconf-dev coreutils perl
+RUN test -n "$CACHE_BUST" && \
+    apk add --no-cache build-base git autoconf automake libtool \
+      linux-headers cmake pkgconf pkgconf-dev coreutils perl
 
 # All sources are cloned from GitHub at build time. Default "latest"
 # resolves the newest stable tag via git ls-remote; pin with --build-arg.
