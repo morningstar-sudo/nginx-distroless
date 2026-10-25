@@ -46,7 +46,7 @@ jobs:
             jq -r '.manifests[]? | select(.platform.os == "linux") | .digest')"
           for digest in ${platform_digests:-${DIGEST}}; do
             syft "${IMAGE}@${digest}" -o spdx-json=sbom.spdx.json
-            cosign attest --yes --registry-referrers-mode=legacy \
+            cosign attest --yes \
               --type spdxjson --predicate sbom.spdx.json "${IMAGE}@${digest}"
             cosign sign --yes --registry-referrers-mode=legacy "${IMAGE}@${digest}"
           done
